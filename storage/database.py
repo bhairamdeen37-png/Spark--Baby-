@@ -144,12 +144,25 @@ class TursoBackend:
 _db = None  # aiosqlite.Connection OR TursoBackend — repositories.py treats both the same
 
 
+def _to_http_url(url: str) -> str:
+    """
+    libsql:// forces libsql_client onto the WebSocket (Hrana/wss) transport,
+    which fails with a 400 handshake error behind some hosts' proxies
+    (this happens on Render). The plain HTTPS Hrana-over-HTTP transport
+    works the same for everything this bot does, so we force it here
+    regardless of which scheme was put in the env var.
+    """
+    if url.startswith("libsql://"):
+        return "https://" + url[len("libsql://"):]
+    return url
+
+
 async def init_db():
     global _db
     if TURSO_DATABASE_URL:
         import libsql_client
         client = libsql_client.create_client(
-            url=TURSO_DATABASE_URL,
+            url=_to_http_url(TURSO_DATABASE_URL),
             auth_token=TURSO_AUTH_TOKEN or None,
         )
         backend = TursoBackend(client)
