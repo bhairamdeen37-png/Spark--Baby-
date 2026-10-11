@@ -53,11 +53,11 @@ async def generate_answer(messages: list, system_prompt: str, image_bytes: bytes
     """
     errors = {}
 
-    providers = [
-        ("gemini", gemini_provider),
-        ("groq", groq_provider),
-        ("openrouter", openrouter_provider),
-    ]
+    from config import AI_PROVIDER_ORDER
+    available = {"gemini": gemini_provider, "groq": groq_provider, "openrouter": openrouter_provider}
+    order = [n for n in AI_PROVIDER_ORDER if n in available]
+    order += [n for n in ("gemini", "groq", "openrouter") if n not in order]
+    providers = [(n, available[n]) for n in order]
 
     for name, mod in providers:
         if image_bytes is not None and not getattr(mod, "SUPPORTS_IMAGES", False):
