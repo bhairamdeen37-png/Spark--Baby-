@@ -11,7 +11,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.enums import ChatType, ChatAction
 
-from config import MAX_ANSWER_CHARS, MAX_IMAGE_BYTES
+from config import MAX_ANSWER_CHARS, MAX_IMAGE_BYTES, BOT_OWNER_IDS
 from storage import repositories as repo
 from services import access_service, memory_service, bot_state
 from services.ai_router import generate_answer, AllProvidersFailedError
@@ -67,12 +67,17 @@ async def process_question(message: Message, question_text: str, image_bytes: by
             )
 
         detailed_mode = await access_service.can_use_detailed_mode(user_id) and await repo.get_detailed_mode(user_id)
-        system_prompt = memory_service.build_system_prompt(detailed_mode, is_group)
+        is_owner = user_id in BOT_OWNER_IDS
+        speaker = message.from_user.first_name or message.from_user.username or ""
+        system_prompt = memory_service.build_system_prompt(detailed_mode, is_group, is_owner, speaker)
         history = await memory_service.get_history(chat_id)
 
         await message.bot.send_chat_action(chat_id, ChatAction.TYPING)
 
-        api_messages = history + [{"role": "user", "content": question_text or "(image question, see attached image)"}]
+        shown_q = question_text or "(image question, see attached image)"
+        if is_group:  # group history is shared, so tag who said what
+            shown_q = f"[{speaker or 'user'}]: {shown_q}"
+        api_messages = history + [{"role": "user", "content": shown_q}]
 
         try:
             answer = await generate_answer(api_messages, system_prompt,
@@ -87,7 +92,7 @@ async def process_question(message: Message, question_text: str, image_bytes: by
             log.error(f"[AI] unexpected error for user {user_id}: {e}")
             return await message.reply("😔 Kuch gadbad ho gayi, thodi der me phir try karna.")
 
-        await memory_service.remember_turn(chat_id, "user", question_text or "[image]")
+        await memory_service.remember_turn(chat_id, "user", shown_q if is_group else (question_text or "[image]"))
         await memory_service.remember_turn(chat_id, "assistant", answer)
 
         for chunk in _chunk(answer, MAX_ANSWER_CHARS):
