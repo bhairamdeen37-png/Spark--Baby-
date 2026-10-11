@@ -4,11 +4,13 @@ ai_router.py must never route image requests here (that would silently
 convert an image question into a text-only guess, which is explicitly
 disallowed by the project brief).
 """
+import asyncio
+
 import aiohttp
 
 from config import GROQ_API_KEY, GROQ_MODEL
 
-TIMEOUT = aiohttp.ClientTimeout(total=25)
+TIMEOUT = aiohttp.ClientTimeout(total=15)
 SUPPORTS_IMAGES = False
 
 
@@ -53,5 +55,8 @@ async def generate(messages: list, system_prompt: str, max_tokens: int = 600) ->
                 return text
     except ProviderError:
         raise
+    except (asyncio.TimeoutError, TimeoutError):
+        # slow/hanging provider: don't retry it, jump to the next provider right away
+        raise ProviderError("timeout", retryable=False)
     except Exception as e:
-        raise ProviderError(f"network_error:{e}", retryable=True)
+        raise ProviderError(f"network_error:{type(e).__name__}:{e}", retryable=True)
