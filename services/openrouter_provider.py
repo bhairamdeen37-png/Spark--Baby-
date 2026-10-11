@@ -5,6 +5,8 @@ accepts both text and images and survives individual free models rotating
 out (see AI_SETUP.md).
 """
 import base64
+import re
+
 import aiohttp
 
 from config import OPENROUTER_API_KEY, OPENROUTER_MODEL
@@ -71,6 +73,12 @@ async def generate(messages: list, system_prompt: str, image_bytes: bytes = None
                 text = (choices[0].get("message", {}) or {}).get("content", "").strip()
                 if not text:
                     raise ProviderError("empty_text", retryable=True)
+                # "openrouter/free" can randomly route to a safety-classifier model that only
+                # prints e.g. "User Safety: safe / Response Safety: safe". That is not an answer.
+                if re.fullmatch(r"(?is)\s*(user|response)\s*safety\s*:.*", text) and len(text) < 120:
+                    raise ProviderError("guard_model_output", retryable=True)
+                if text.lower().strip() in ("safe", "unsafe"):
+                    raise ProviderError("guard_model_output", retryable=True)
                 return text
     except ProviderError:
         raise
