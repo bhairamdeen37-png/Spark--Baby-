@@ -98,6 +98,14 @@ async def process_question(message: Message, question_text: str, image_bytes: by
             shown_q = f"[{speaker or 'user'}]: {shown_q}"
         api_messages = history + [{"role": "user", "content": shown_q}]
 
+        async def _typing():
+            while True:
+                await asyncio.sleep(4)
+                try:
+                    await message.bot.send_chat_action(chat_id, ChatAction.TYPING)
+                except Exception:
+                    return
+        typing_task = asyncio.create_task(_typing())
         try:
             answer = await generate_answer(api_messages, system_prompt,
                                             image_bytes=image_bytes, image_mime=image_mime)
@@ -110,6 +118,8 @@ async def process_question(message: Message, question_text: str, image_bytes: by
         except Exception as e:
             log.error(f"[AI] unexpected error for user {user_id}: {e}")
             return await message.reply("😔 Kuch gadbad ho gayi, thodi der me phir try karna.")
+        finally:
+            typing_task.cancel()
 
         if auto and SKIP_TAG in answer:
             return  # not a study question -> stay silent (nothing saved to memory)
