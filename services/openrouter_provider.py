@@ -7,11 +7,13 @@ out (see AI_SETUP.md).
 import base64
 import re
 
+import asyncio
+
 import aiohttp
 
 from config import OPENROUTER_API_KEY, OPENROUTER_MODEL
 
-TIMEOUT = aiohttp.ClientTimeout(total=30)
+TIMEOUT = aiohttp.ClientTimeout(total=20)
 SUPPORTS_IMAGES = True
 
 
@@ -82,5 +84,8 @@ async def generate(messages: list, system_prompt: str, image_bytes: bytes = None
                 return text
     except ProviderError:
         raise
+    except (asyncio.TimeoutError, TimeoutError):
+        # slow/hanging provider: don't retry it, jump to the next provider right away
+        raise ProviderError("timeout", retryable=False)
     except Exception as e:
-        raise ProviderError(f"network_error:{e}", retryable=True)
+        raise ProviderError(f"network_error:{type(e).__name__}:{e}", retryable=True)
