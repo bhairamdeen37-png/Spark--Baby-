@@ -38,7 +38,10 @@ OPENROUTER_API_KEY = _get("OPENROUTER_API_KEY")
 #   Gemini      -> https://ai.google.dev/gemini-api/docs/models
 #   Groq        -> https://console.groq.com/docs/models
 #   OpenRouter  -> https://openrouter.ai/models
-GEMINI_MODEL = _get("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_MODEL = _get("GEMINI_MODEL", "")
+# Gemini 2.0 Flash was shut down by Google (Jun 2026). We try your GEMINI_MODEL first (if set),
+# then these in order; a retired ID (404) is skipped automatically.
+GEMINI_MODELS = [m for m in [GEMINI_MODEL, "gemini-flash-latest", "gemini-3.5-flash", "gemini-2.5-flash"] if m]
 GROQ_MODEL = _get("GROQ_MODEL", "openai/gpt-oss-120b")
 # openrouter/free is OpenRouter's own router across all free models (text + vision),
 # chosen as the default specifically so this doesn't break when one underlying
