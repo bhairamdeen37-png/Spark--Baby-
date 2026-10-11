@@ -30,17 +30,45 @@ def _extract_json(text: str) -> str:
     return text.strip()
 
 
+def _parse_questions(raw: str) -> list:
+    """Tolerant parser: handles extra text around the JSON and a reply that got cut off
+    half-way (keeps every complete question object found)."""
+    cleaned = _extract_json(raw)
+    try:
+        data = json.loads(cleaned)
+        if isinstance(data, dict):
+            data = data.get("questions") or data.get("quiz") or [data]
+        return data
+    except ValueError:
+        pass
+    dec, items, i = json.JSONDecoder(), [], 0
+    while True:
+        i = cleaned.find("{", i)
+        if i == -1:
+            break
+        try:
+            obj, end = dec.raw_decode(cleaned, i)
+            if isinstance(obj, dict) and "question" in obj:
+                items.append(obj)
+            i = end
+        except ValueError:
+            i += 1
+    return items
+
+
 async def generate_quiz(topic: str, difficulty: str, num_questions: int = 5) -> list:
     user_prompt = (
         f"Generate {num_questions} multiple-choice questions on the topic "
         f"\"{topic}\" at {difficulty} difficulty. Remember: JSON only."
     )
+    # 5 questions + explanations need far more than the default 600 tokens (that cut the JSON
+    # off and made every quiz fail); thinking-type models also spend tokens before answering.
     raw = await ai_router.generate_answer(
         messages=[{"role": "user", "content": user_prompt}],
         system_prompt=QUIZ_SYSTEM_PROMPT,
+        max_tokens=4000,
     )
-    cleaned = _extract_json(raw)
-    data = json.loads(cleaned)  # let it raise — caller handles ValueError/JSONDecodeError
+    data = _parse_questions(raw)
 
     questions = []
     for item in data:
@@ -54,7 +82,7 @@ async def generate_quiz(topic: str, difficulty: str, num_questions: int = 5) -> 
                 and isinstance(ci, int) and 0 <= ci <= 3):
             questions.append({"question": q, "options": opts, "correct_index": ci, "explanation": exp})
     if not questions:
-        raise ValueError("quiz_generation_produced_no_valid_questions")
+        raise ValueError(f"quiz_generation_produced_no_valid_questions; raw_start={raw[:200]!r}")
     return questions
 
 
