@@ -70,6 +70,8 @@ FREE_TEXT_DAILY_LIMIT = _get_int("FREE_TEXT_DAILY_LIMIT", 50)
 FREE_IMAGE_DAILY_LIMIT = _get_int("FREE_IMAGE_DAILY_LIMIT", 10)
 # Group: messages a member sends TO the bot (mention / reply / command). Auto-solve is free.
 FREE_GROUP_MEMBER_LIMIT = _get_int("FREE_GROUP_MEMBER_LIMIT", 20)
+# Which AI to try first. For faster text replies set on Render:  AI_PROVIDER_ORDER=groq,gemini,openrouter
+AI_PROVIDER_ORDER = [x.strip() for x in _get("AI_PROVIDER_ORDER", "gemini,groq,openrouter").split(",") if x.strip()]
 LIMIT_WINDOW_HOURS = _get_int("LIMIT_WINDOW_HOURS", 18)
 LIMIT_WINDOW_SECONDS = LIMIT_WINDOW_HOURS * 3600
 
