@@ -46,7 +46,7 @@ async def _try_provider(name: str, call_coro_factory):
 
 
 async def generate_answer(messages: list, system_prompt: str, image_bytes: bytes = None,
-                           image_mime: str = "image/jpeg") -> str:
+                           image_mime: str = "image/jpeg", max_tokens: int = None) -> str:
     """
     Returns the answer text from the first provider that succeeds.
     Raises AllProvidersFailedError if every eligible provider fails.
@@ -65,10 +65,11 @@ async def generate_answer(messages: list, system_prompt: str, image_bytes: bytes
             continue
 
         async def _call():
+            extra = {"max_tokens": max_tokens} if max_tokens else {}
             if image_bytes is not None:
                 return await mod.generate(messages, system_prompt, image_bytes=image_bytes,
-                                           image_mime=image_mime)
-            return await mod.generate(messages, system_prompt)
+                                           image_mime=image_mime, **extra)
+            return await mod.generate(messages, system_prompt, **extra)
 
         try:
             answer = await _try_provider(name, _call)
