@@ -2,12 +2,13 @@
 Google Gemini provider. Supports text and image (vision) input.
 Raises on failure — ai_router.py decides what to do next.
 """
+import asyncio
 import base64
 import aiohttp
 
 from config import GEMINI_API_KEY, GEMINI_MODELS
 
-TIMEOUT = aiohttp.ClientTimeout(total=25)
+TIMEOUT = aiohttp.ClientTimeout(total=12)
 SUPPORTS_IMAGES = True
 
 
@@ -98,5 +99,8 @@ async def _generate_with(model, messages, system_prompt, image_bytes, image_mime
                 return text
     except ProviderError:
         raise
+    except (asyncio.TimeoutError, TimeoutError):
+        # slow/hanging provider: don't retry it, jump to the next provider right away
+        raise ProviderError("timeout", retryable=False)
     except Exception as e:
-        raise ProviderError(f"network_error:{e}", retryable=True)
+        raise ProviderError(f"network_error:{type(e).__name__}:{e}", retryable=True)
