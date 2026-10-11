@@ -10,6 +10,7 @@ commit/close, with async fetchone()/fetchall() on the cursor and sqlite3.Row-
 style access via both string and integer keys) so repositories.py never has
 to know which one is actually in use.
 """
+import re
 import time
 
 import aiosqlite
@@ -127,6 +128,10 @@ class TursoBackend:
         # libsql_client doesn't batch arbitrary DDL scripts in one call the
         # way aiosqlite does — split on ';' and run each statement. Fine
         # for our schema (no literal semicolons inside string values here).
+        # Strip "-- comments" FIRST: a comment containing ';' (e.g. "-- unix ts; 0 or
+        # past") used to split a CREATE TABLE in half -> Turso syntax error ->
+        # libsql_client crashed with KeyError: 'result'.
+        script = re.sub(r"--[^\n]*", "", script)
         for stmt in script.split(";"):
             stmt = stmt.strip()
             if stmt:
