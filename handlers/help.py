@@ -6,41 +6,107 @@ from config import BOT_OWNER_IDS
 
 router = Router(name="help")
 
-HELP_TEXT = """**📚 Spark Baby — Commands**
+HELP_TEXT = """╭━━━━━━━━━━━━━━━━━━━━━━╮
+     💖 *SPARK BABY*
+      📚 *HELP CENTER*
+╰━━━━━━━━━━━━━━━━━━━━━━╯
 
-**Study**
-`/ask <question>` — seedha AI se poocho (ya bina command ke bhi, normal text/photo bhejo)
-`/solve <question>` — question solve karo
-`/explain <topic>` — concept explain karo
-`/notes <topic>` — notes/summary generate karo
-`/quiz <topic>` — practice quiz shuru karo
+Hiii! 🥰 Welcome to Spark Baby Help Center!
+Yahan tumhe available commands ki information milegi. ✨
 
-**Settings**
-`/mode` — step-by-step/detailed mode (premium only)
-`/language` — reply language set karo
-`/clear` — is chat ki AI memory clear karo
-`/status` — apna plan aur daily usage dekho
+━━━━━━━━━━━━━━━━━━━━━━━━
+📚 *STUDY & LEARNING*
+━━━━━━━━━━━━━━━━━━━━━━━━
 
-**Group (admins only)**
-`/study on` / `/study off` — is group me AI ON/OFF
-`/study` — is group ka status
+🧠 `/ask <question>`
+Question seedha AI se poocho. Normal text ya photo bhi bhej sakte ho.
 
-**Premium**
-`/premium` — plans dekho, Telegram Stars se kharido
-`/redeem <code>` — coupon code redeem karo
+🧮 `/solve <question>`
+Apne question ka solution pao.
+
+💡 `/explain <topic>`
+Difficult concepts ko simple language mein samjho.
+
+📝 `/notes <topic>`
+Notes aur chapter summaries generate karo.
+
+🎯 `/quiz <topic>`
+Practice quiz shuru karo aur apni knowledge test karo.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+⚙️ *PERSONAL SETTINGS*
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+📖 `/mode`
+Step-by-step ya detailed mode set karo (Premium only).
+
+🌍 `/language`
+Apni preferred reply language set karo.
+
+🧹 `/clear`
+Is chat ki AI memory clear karo.
+
+📊 `/status`
+Apna plan aur daily usage check karo.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+👥 *GROUP STUDY* _(Admins only)_
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ `/study on`
+Group mein AI study mode ON karo.
+
+🔕 `/study off`
+Group mein AI study mode OFF karo.
+
+📊 `/study`
+Group ka current study mode status dekho.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+💎 *PREMIUM & REWARDS*
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌟 `/premium`
+Available plans dekho aur Telegram Stars se purchase karo.
+
+🎟 `/redeem <code>`
+Apna coupon code redeem karo.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+💗 _Happy learning with Spark Baby!_
+✨ _Keep learning, keep growing._ 🎓
 """
 
 OWNER_HELP = """
-**Owner panel**
-`/admin` — owner panel menu
-`/grantpremium <user_id> <days>` — kisi ko bhi premium do
-`/revokepremium <user_id>` — premium hatao
-`/createcoupon <days> <validity_days> <max_uses>` — naya coupon banao
-`/listcoupons` — active coupons dekho
-`/deletecoupon <code>` — coupon delete karo
-`/stats` — bot ke stats
-"""
+━━━━━━━━━━━━━━━━━━━━━━━━
+🛠 *OWNER CONTROL PANEL*
+━━━━━━━━━━━━━━━━━━━━━━━━
 
+👑 `/admin`
+Owner panel open karo.
+
+💎 `/grantpremium <user_id> <days>`
+Kisi user ko Premium access do.
+
+🔒 `/revokepremium <user_id>`
+User ka Premium access hatao.
+
+🎟 `/createcoupon <days> <validity_days> <max_uses>`
+Naya coupon create karo.
+
+📋 `/listcoupons`
+Active coupons ki list dekho.
+
+🗑 `/deletecoupon <code>`
+Coupon delete karo.
+
+📊 `/stats`
+Bot ke statistics dekho.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+👑 _Spark Baby — Owner Controls_
+"""
 
 @router.message(Command("help"))
 async def help_cmd(message: Message):
