@@ -50,6 +50,12 @@ def _chunk(text: str, size: int) -> list:
 SKIP_TAG = "[[SKIP]]"
 
 
+def _strip_mention(text: str) -> str:
+    if text and bot_state.username:
+        text = re.sub(rf"@{re.escape(bot_state.username)}\b", "", text, flags=re.I).strip()
+    return text
+
+
 async def process_question(message: Message, question_text: str, image_bytes: bytes = None,
                             image_mime: str = "image/jpeg", auto: bool = False):
     user_id = message.from_user.id
@@ -145,10 +151,10 @@ async def _auto_eligible(message: Message) -> bool:
 
 
 async def _group_eligible(message: Message, explicit_command: bool) -> bool:
+    # Direct address (@botusername or reply to the bot) is answered in EVERY group,
+    # whether study mode is on or off.
     if explicit_command:
         return True
-    if not await repo.get_study_mode(message.chat.id):
-        return False
     text = message.text or message.caption or ""
     if _is_bot_mentioned(text):
         return True
@@ -222,7 +228,7 @@ async def plain_text_handler(message: Message):
             if not await _auto_eligible(message):
                 return
             auto = True
-    await process_question(message, message.text, auto=auto)
+    await process_question(message, _strip_mention(message.text) or "hello", auto=auto)
 
 
 # ── photos (image questions) ──
@@ -247,5 +253,5 @@ async def photo_handler(message: Message):
     buf = await message.bot.download_file(file.file_path)
     image_bytes = buf.read()
 
-    caption = message.caption or "Is image me jo question hai usko solve karo."
+    caption = _strip_mention(message.caption) or "Is image me jo question hai usko solve karo."
     await process_question(message, caption, image_bytes=image_bytes, image_mime="image/jpeg", auto=auto)
