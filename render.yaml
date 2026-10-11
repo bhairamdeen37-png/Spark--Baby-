@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: spark-baby
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: BOT_OWNER_IDS
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+    # Turso (libSQL) is the real persistent database — set TURSO_DATABASE_URL
+    # + TURSO_AUTH_TOKEN above and you're done, no Render disk needed.
+    # If you skip Turso, the bot falls back to a local SQLite file, which
+    # Render's free/standard disk WIPES on every redeploy/restart. See
+    # AI_SETUP.md for the Turso setup steps.
