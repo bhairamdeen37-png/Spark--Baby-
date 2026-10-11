@@ -4,10 +4,11 @@ now, and whether they're allowed detailed/step-by-step mode. Single place
 that encodes the free-vs-premium rules so handlers don't duplicate logic.
 """
 from storage import repositories as repo
-from config import FREE_TEXT_DAILY_LIMIT, FREE_IMAGE_DAILY_LIMIT, LIMIT_WINDOW_HOURS
+from config import (FREE_TEXT_DAILY_LIMIT, FREE_IMAGE_DAILY_LIMIT, FREE_GROUP_MEMBER_LIMIT,
+                    LIMIT_WINDOW_HOURS, BOT_OWNER_IDS)
 
 
-async def check_access(user_id: int, kind: str) -> dict:
+async def check_access(user_id: int, kind: str, scope: str = "dm") -> dict:
     """
     kind: 'text' or 'image'
     Returns a dict:
@@ -16,12 +17,22 @@ async def check_access(user_id: int, kind: str) -> dict:
       remaining (int or None)   -- None means unlimited (premium)
       reset_in_seconds (int or None)
     Premium users bypass the quota entirely (truly unlimited, DM + group).
+
+    scope: 'dm'    -> normal daily text/image limits
+           'group' -> member talks to the bot in a group: FREE_GROUP_MEMBER_LIMIT per window
+           'auto'  -> bot auto-solved a group question: free, never counted
+    Owners and premium users are never limited.
     """
+    if scope == "auto" or user_id in BOT_OWNER_IDS:
+        return {"allowed": True, "is_premium": True, "remaining": None, "reset_in_seconds": None}
     premium = await repo.is_premium(user_id)
     if premium:
         return {"allowed": True, "is_premium": True, "remaining": None, "reset_in_seconds": None}
 
-    limit = FREE_TEXT_DAILY_LIMIT if kind == "text" else FREE_IMAGE_DAILY_LIMIT
+    if scope == "group":
+        kind, limit = "group", FREE_GROUP_MEMBER_LIMIT
+    else:
+        limit = FREE_TEXT_DAILY_LIMIT if kind == "text" else FREE_IMAGE_DAILY_LIMIT
     allowed, remaining, reset_in = await repo.check_and_consume_quota(user_id, kind, limit)
     return {
         "allowed": allowed,
