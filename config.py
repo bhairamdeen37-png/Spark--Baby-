@@ -65,6 +65,8 @@ MAX_MEMORY_MESSAGES = max(10, min(20, _get_int("MAX_MEMORY_MESSAGES", 15)))
 # ── Free-tier limits (apply equally in DM and groups) ──
 FREE_TEXT_DAILY_LIMIT = _get_int("FREE_TEXT_DAILY_LIMIT", 50)
 FREE_IMAGE_DAILY_LIMIT = _get_int("FREE_IMAGE_DAILY_LIMIT", 10)
+# Group: messages a member sends TO the bot (mention / reply / command). Auto-solve is free.
+FREE_GROUP_MEMBER_LIMIT = _get_int("FREE_GROUP_MEMBER_LIMIT", 20)
 LIMIT_WINDOW_HOURS = _get_int("LIMIT_WINDOW_HOURS", 18)
 LIMIT_WINDOW_SECONDS = LIMIT_WINDOW_HOURS * 3600
 
