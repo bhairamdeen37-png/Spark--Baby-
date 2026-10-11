@@ -5,7 +5,7 @@ Raises on failure — ai_router.py decides what to do next.
 import base64
 import aiohttp
 
-from config import GEMINI_API_KEY, GEMINI_MODEL
+from config import GEMINI_API_KEY, GEMINI_MODELS
 
 TIMEOUT = aiohttp.ClientTimeout(total=25)
 SUPPORTS_IMAGES = True
@@ -18,14 +18,38 @@ class ProviderError(Exception):
         self.retryable = retryable
 
 
+_working_model = None  # remembered once a model ID answers successfully
+
+
 async def generate(messages: list, system_prompt: str, image_bytes: bytes = None,
                     image_mime: str = "image/jpeg", max_tokens: int = 600) -> str:
+    """Tries the configured model list in order; a retired/unknown model ID (HTTP 404)
+    just moves on to the next candidate instead of killing Gemini entirely."""
+    global _working_model
+    if not GEMINI_API_KEY:
+        raise ProviderError("no_api_key", retryable=False)
+    candidates = ([_working_model] if _working_model else []) + [m for m in GEMINI_MODELS if m != _working_model]
+    last = None
+    for model in candidates:
+        try:
+            out = await _generate_with(model, messages, system_prompt, image_bytes, image_mime, max_tokens)
+            _working_model = model
+            return out
+        except ProviderError as e:
+            last = e
+            if str(e).startswith("http_404") or "not found" in str(e).lower():
+                continue  # model ID retired/unknown -> try next one
+            raise
+    raise last or ProviderError("no_model", retryable=False)
+
+
+async def _generate_with(model, messages, system_prompt, image_bytes, image_mime, max_tokens):
     if not GEMINI_API_KEY:
         raise ProviderError("no_api_key", retryable=False)
 
     url = (
         f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+        f"{model}:generateContent?key={GEMINI_API_KEY}"
     )
 
     contents = []
