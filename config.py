@@ -63,7 +63,7 @@ TURSO_AUTH_TOKEN = _get("TURSO_AUTH_TOKEN")
 DATABASE_PATH = _get("DATABASE_PATH", "spark_baby.db")
 
 # ── Memory ──
-MAX_MEMORY_MESSAGES = max(10, min(20, _get_int("MAX_MEMORY_MESSAGES", 15)))
+MAX_MEMORY_MESSAGES = max(10, min(20, _get_int("MAX_MEMORY_MESSAGES", 20)))
 
 # ── Free-tier limits (apply equally in DM and groups) ──
 FREE_TEXT_DAILY_LIMIT = _get_int("FREE_TEXT_DAILY_LIMIT", 50)
