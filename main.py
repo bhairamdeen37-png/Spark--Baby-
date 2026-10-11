@@ -10,7 +10,7 @@ import config
 from storage.database import init_db, close_db
 from services import bot_state
 
-from handlers import start, help, settings, study, messages, quiz, notes, payment, admin
+from handlers import start, help, settings, study, messages, quiz, notes, payment, admin, menu
 
 logging.basicConfig(
     level=getattr(logging, config.LOG_LEVEL, logging.INFO),
@@ -44,6 +44,7 @@ async def main():
     dp = Dispatcher()
 
     dp.include_router(start.router)
+    dp.include_router(menu.router)
     dp.include_router(help.router)
     dp.include_router(settings.router)
     dp.include_router(study.router)
