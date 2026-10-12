@@ -46,12 +46,13 @@ async def menu_cb(callback: CallbackQuery):
             "Ready ho apni knowledge test karne ke liye? 📚✨\n\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━\n"
             "🎓 *Quiz Command*\n\n"
-            "`/quiz <topic> [easy|medium|hard]`\n\n"
-            "📝 *Example:*\n"
-            "`/quiz Photosynthesis medium`\n\n"
+            "`/quiz` — buttons se exam, subject, level aur sawaal chuno\n"
+            "`/quiz Photosynthesis` — apna topic likho\n\n"
+            "👥 Group me sab log jawab de sakte hain, points + leaderboard (`/top`) 🏆\n"
+            "🔥 Roz khelo, streak badhao! Apna score: `/mystats`\n\n"
             "━━━━━━━━━━━━━━━━━━━━━━━━\n"
             "🌱 Easy  •  ⭐ Medium  •  🔥 Hard\n\n"
-            "_Apna topic aur difficulty choose karo aur practice shuru karo!_ 💖",
+            "_Chalo, quiz shuru karte hain!_ 💖",
             parse_mode="Markdown",
         )
 
