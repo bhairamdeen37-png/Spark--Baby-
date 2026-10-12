@@ -159,3 +159,12 @@ Quick version:
 - Free OpenRouter models rotate; the default `openrouter/free` router model
   is used specifically to survive that, but verify at openrouter.ai/models
   if something stops working.
+
+## 🎯 Quiz: online question bank + balanced answers (update)
+
+* **JEE / NEET / SSC / UPSC / Board / School** questions now come from an **online question bank** first
+  (`QBANK_BASE_URL` + `data/qbank/*.json`, format in `data/qbank/README.md`). AI only fills the missing questions.
+* AI-written questions are **re-solved by a second model** (`QUIZ_VERIFY=1`); questions with a wrong answer key are dropped.
+* The correct option is **re-placed randomly and evenly across A/B/C/D** for every quiz (no more "always A").
+* **Hugging Face datasets** (JEE Main, NEET ...) are an extra online source (`services/hf_dataset_source.py`, env `HF_*` in `.env.example`).
+  Check what each dataset gives with: `python -m tools.check_hf_dataset`
