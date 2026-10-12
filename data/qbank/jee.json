@@ -1,0 +1,17 @@
+{
+  "_note": "SAMPLE questions only (6). Add your own checked JEE questions here or in your online QBANK_BASE_URL/jee.json. Format: data/qbank/README.md",
+  "questions": [
+    {"subject": "physics", "level": "easy", "question": "A ball is thrown vertically upward with speed 20 m/s. Taking g = 10 m/s², the maximum height reached is:",
+     "options": ["10 m", "20 m", "30 m", "40 m"], "answer": "B", "explanation": "h = v²/2g = 400/20 = 20 m."},
+    {"subject": "physics", "level": "easy", "question": "The dimensional formula of Planck's constant is:",
+     "options": ["ML²T⁻¹", "MLT⁻¹", "ML²T⁻²", "M²LT⁻¹"], "answer": "A", "explanation": "h = E/ν → ML²T⁻² / T⁻¹ = ML²T⁻¹."},
+    {"subject": "chemistry", "level": "easy", "question": "The IUPAC name of CH₃–CH₂–CHO is:",
+     "options": ["Propanone", "Ethanal", "Propanal", "Butanal"], "answer": "C", "explanation": "3 carbons with –CHO at the end → propanal."},
+    {"subject": "chemistry", "level": "easy", "question": "The hybridisation of carbon in ethyne (C₂H₂) is:",
+     "options": ["sp³", "sp²", "sp³d", "sp"], "answer": "D", "explanation": "Each carbon forms one triple bond and one single bond → 2 sigma bonds → sp."},
+    {"subject": "maths", "level": "medium", "question": "If α and β are the roots of x² − 5x + 6 = 0, then α² + β² =",
+     "options": ["11", "13", "15", "17"], "answer": "B", "explanation": "(α+β)² − 2αβ = 25 − 12 = 13."},
+    {"subject": "maths", "level": "easy", "question": "The value of the definite integral ∫ from 1 to e of (1/x) dx is:",
+     "options": ["0", "e", "1", "1/e"], "answer": "C", "explanation": "[ln x] from 1 to e = 1 − 0 = 1."}
+  ]
+}
