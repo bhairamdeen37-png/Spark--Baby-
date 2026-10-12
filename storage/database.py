@@ -76,6 +76,30 @@ CREATE TABLE IF NOT EXISTS payments (
     ts                 INTEGER
 );
 
+CREATE TABLE IF NOT EXISTS kv (
+    key             TEXT PRIMARY KEY,
+    value           TEXT
+);
+
+CREATE TABLE IF NOT EXISTS diary (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    fact            TEXT UNIQUE,
+    ts              INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS quiz_stats (
+    chat_id         INTEGER,
+    user_id         INTEGER,
+    name            TEXT,
+    points          INTEGER DEFAULT 0,
+    correct         INTEGER DEFAULT 0,
+    answered        INTEGER DEFAULT 0,
+    streak          INTEGER DEFAULT 0,
+    best_streak     INTEGER DEFAULT 0,
+    last_day        TEXT,
+    PRIMARY KEY (chat_id, user_id)
+);
+
 CREATE TABLE IF NOT EXISTS quiz_sessions (
     user_id         INTEGER PRIMARY KEY,
     data            TEXT,                  -- JSON blob: topic, questions, current index, score
