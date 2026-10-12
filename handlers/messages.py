@@ -14,7 +14,7 @@ from aiogram.enums import ChatType, ChatAction
 
 from config import MAX_ANSWER_CHARS, MAX_IMAGE_BYTES, BOT_OWNER_IDS
 from storage import repositories as repo
-from services import access_service, memory_service, bot_state
+from services import access_service, memory_service, bot_state, diary_service
 from services.ai_router import generate_answer, AllProvidersFailedError
 from services.math_format import plain_math
 
@@ -87,6 +87,11 @@ async def process_question(message: Message, question_text: str, image_bytes: by
         speaker = message.from_user.first_name or message.from_user.username or ""
         system_prompt = memory_service.build_system_prompt(detailed_mode, is_group, is_owner, speaker)
         system_prompt += intent_hint(question_text, explicit, image_bytes is not None)
+        if is_owner:
+            try:
+                system_prompt += await diary_service.prompt_block()
+            except Exception as e:
+                log.warning(f"[diary] could not load: {e}")
         if auto:
             system_prompt += ("\n\nAUTO-SOLVE: nobody asked you directly. Only answer if the message is a genuine "
                               "academic/study question (maths, science, concepts, homework, MCQ etc). If it is just "
@@ -132,6 +137,8 @@ async def process_question(message: Message, question_text: str, image_bytes: by
 
         await memory_service.remember_turn(chat_id, "user", shown_q if is_group else (question_text or "[image]"))
         await memory_service.remember_turn(chat_id, "assistant", answer)
+        if is_owner and not is_group:
+            diary_service.note_owner_dm_message(chat_id)  # every few messages: update Liya's diary
 
         for chunk in _chunk(answer, MAX_ANSWER_CHARS):
             try:
