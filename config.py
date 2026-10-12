@@ -48,6 +48,23 @@ GROQ_MODEL = _get("GROQ_MODEL", "openai/gpt-oss-120b")
 # free model gets rotated out.
 OPENROUTER_MODEL = _get("OPENROUTER_MODEL", "openrouter/free")
 
+# ── Quiz question bank (JEE / NEET / competitive exams) ──
+# Base URL of a folder that holds <exam>.json files (jee.json, neet.json, ssc.json ...), e.g. a GitHub
+# raw folder:  https://raw.githubusercontent.com/<user>/<repo>/main/questions
+# Format of each file: see data/qbank/README.md. Empty = only the local data/qbank/*.json files are used.
+QBANK_BASE_URL = _get("QBANK_BASE_URL", "").rstrip("/")
+QBANK_CACHE_HOURS = _get_int("QBANK_CACHE_HOURS", 6)
+# AI-made questions get a second, independent "solve it again" check; wrong answer keys are dropped.
+# Set QUIZ_VERIFY=0 to turn this off (saves one AI call per quiz).
+QUIZ_VERIFY = _get("QUIZ_VERIFY", "1") != "0"
+# Hugging Face datasets (via the Dataset Viewer API) as an extra online source for JEE / NEET.
+HF_ENABLED = _get("HF_ENABLED", "1") != "0"
+HF_TOKEN = _get("HF_TOKEN", "")            # optional; a free read token gives higher rate limits
+HF_PAGES = max(1, min(10, _get_int("HF_PAGES", 3)))   # pages of 100 rows sampled per dataset per refresh
+# Per-exam dataset override, e.g. HF_DATASETS_NEET=user/dataset1,user/dataset2 (empty value = disable HF for that exam)
+HF_DATASETS_OVERRIDE = {e: [x.strip() for x in os.environ[f"HF_DATASETS_{e.upper()}"].split(",") if x.strip()]
+                        for e in ("jee", "neet", "ssc", "upsc", "brd", "sch") if f"HF_DATASETS_{e.upper()}" in os.environ}
+
 # ── Storage ──
 # Turso (libSQL) is the primary database — a real persistent cloud DB, so
 # data survives Render redeploys/restarts (unlike a local SQLite file on
