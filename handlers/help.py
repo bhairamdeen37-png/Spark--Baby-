@@ -30,8 +30,14 @@ Difficult concepts ko simple language mein samjho.
 📝 `/notes <topic>`
 Notes aur chapter summaries generate karo.
 
-🎯 `/quiz <topic>`
-Practice quiz shuru karo aur apni knowledge test karo.
+🎯 `/quiz`
+Buttons se exam, subject, level aur sawal chuno. Group me sab log jawab de sakte hain!
+
+🏆 `/top` • 📊 `/mystats` • 🛑 `/quizstop`
+Leaderboard, apna score aur streak, quiz rokna.
+
+📅 `/dailyquiz on` _(Admins only)_
+Roz subah 9 baje group me daily quiz.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
 ⚙️ *PERSONAL SETTINGS*
