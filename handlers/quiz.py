@@ -13,7 +13,7 @@ from aiogram.enums import ChatType
 
 from config import BOT_OWNER_IDS
 from storage import repositories as repo
-from services import access_service, quiz_bank, quiz_runner
+from services import access_service, question_bank_online, quiz_bank, quiz_runner
 
 log = logging.getLogger("spark_baby.quiz")
 router = Router(name="quiz")
@@ -157,7 +157,9 @@ async def _launch(cb: CallbackQuery, key, exam=None, si=0, lv="m", cnt=5, topic=
     if quiz_runner.active(chat_id):
         await cb.answer("Is chat me quiz chal raha hai.", show_alert=True)
         return
-    uses_ai = topic is not None or quiz_bank.EXAMS[exam][1] == "ai"
+    # "bank" exams (JEE/NEET/...) read the online question bank first; they only cost an AI call when no bank is set up
+    src = None if topic is not None else quiz_bank.EXAMS[exam][1]
+    uses_ai = topic is not None or src == "ai" or (src == "bank" and not question_bank_online.is_configured(exam))
     if uses_ai and user.id not in BOT_OWNER_IDS:
         scope = "dm" if msg.chat.type == ChatType.PRIVATE else "group"
         access = await access_service.check_access(user.id, "text", scope)
