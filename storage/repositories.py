@@ -315,3 +315,101 @@ async def get_stats() -> dict:
         "active_groups": active_groups,
         "active_coupons": active_coupons,
     }
+
+
+# ═══════════════ KEY/VALUE (settings, scheduler markers) ═══════════════
+
+async def kv_get(key: str, default=None):
+    db = get_db()
+    cur = await db.execute("SELECT value FROM kv WHERE key = ?", (key,))
+    row = await cur.fetchone()
+    return row["value"] if row else default
+
+
+async def kv_set(key: str, value):
+    db = get_db()
+    await db.execute(
+        "INSERT INTO kv (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?",
+        (key, str(value), str(value)),
+    )
+    await db.commit()
+
+
+# ═══════════════ DIARY (owner-only long-term memory) ═══════════════
+
+async def diary_all() -> list:
+    db = get_db()
+    cur = await db.execute("SELECT fact FROM diary ORDER BY id ASC")
+    return [r["fact"] for r in await cur.fetchall()]
+
+
+async def diary_replace(facts: list):
+    db = get_db()
+    await db.execute("DELETE FROM diary")
+    ts = now_ts()
+    for f in facts:
+        await db.execute("INSERT OR IGNORE INTO diary (fact, ts) VALUES (?, ?)", (f, ts))
+    await db.commit()
+
+
+# ═══════════════ QUIZ LEADERBOARD / STREAKS ═══════════════
+
+async def add_quiz_result(chat_id: int, user_id: int, name: str, points: int, correct: int,
+                          answered: int, today: str, yesterday: str):
+    """Adds one finished quiz to a user's totals and updates the day-streak."""
+    db = get_db()
+    cur = await db.execute(
+        "SELECT points, correct, answered, streak, best_streak, last_day FROM quiz_stats "
+        "WHERE chat_id = ? AND user_id = ?", (chat_id, user_id))
+    row = await cur.fetchone()
+    if row is None:
+        streak = 1
+        await db.execute(
+            "INSERT INTO quiz_stats (chat_id, user_id, name, points, correct, answered, streak, best_streak, last_day) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (chat_id, user_id, name, points, correct, answered, streak, streak, today))
+    else:
+        if row["last_day"] == today:
+            streak = row["streak"]
+        elif row["last_day"] == yesterday:
+            streak = row["streak"] + 1
+        else:
+            streak = 1
+        best = max(row["best_streak"], streak)
+        await db.execute(
+            "UPDATE quiz_stats SET name = ?, points = ?, correct = ?, answered = ?, streak = ?, best_streak = ?, "
+            "last_day = ? WHERE chat_id = ? AND user_id = ?",
+            (name, row["points"] + points, row["correct"] + correct, row["answered"] + answered,
+             streak, best, today, chat_id, user_id))
+    await db.commit()
+    return streak
+
+
+async def quiz_top(chat_id: int, limit: int = 10) -> list:
+    db = get_db()
+    cur = await db.execute(
+        "SELECT user_id, name, points, correct, answered, streak FROM quiz_stats WHERE chat_id = ? "
+        "ORDER BY points DESC, correct DESC LIMIT ?", (chat_id, limit))
+    return [dict(r) for r in await cur.fetchall()]
+
+
+async def quiz_user(chat_id: int, user_id: int):
+    db = get_db()
+    cur = await db.execute(
+        "SELECT name, points, correct, answered, streak, best_streak FROM quiz_stats "
+        "WHERE chat_id = ? AND user_id = ?", (chat_id, user_id))
+    row = await cur.fetchone()
+    return dict(row) if row else None
+
+
+async def kv_keys_like(prefix: str, value: str) -> list:
+    """Returns the integer id after 'prefix' for every kv row whose key starts with prefix and value matches."""
+    db = get_db()
+    cur = await db.execute("SELECT key FROM kv WHERE key LIKE ? AND value = ?", (prefix + "%", value))
+    out = []
+    for r in await cur.fetchall():
+        try:
+            out.append(int(r["key"][len(prefix):]))
+        except ValueError:
+            pass
+    return out
