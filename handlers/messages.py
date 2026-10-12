@@ -58,7 +58,7 @@ def _strip_mention(text: str) -> str:
 
 
 async def process_question(message: Message, question_text: str, image_bytes: bytes = None,
-                            image_mime: str = "image/jpeg", auto: bool = False):
+                            image_mime: str = "image/jpeg", auto: bool = False, explicit: bool = False):
     user_id = message.from_user.id
     chat_id = message.chat.id
     is_group = message.chat.type != ChatType.PRIVATE
@@ -86,6 +86,7 @@ async def process_question(message: Message, question_text: str, image_bytes: by
         is_owner = user_id in BOT_OWNER_IDS
         speaker = message.from_user.first_name or message.from_user.username or ""
         system_prompt = memory_service.build_system_prompt(detailed_mode, is_group, is_owner, speaker)
+        system_prompt += intent_hint(question_text, explicit, image_bytes is not None)
         if auto:
             system_prompt += ("\n\nAUTO-SOLVE: nobody asked you directly. Only answer if the message is a genuine "
                               "academic/study question (maths, science, concepts, homework, MCQ etc). If it is just "
@@ -97,7 +98,9 @@ async def process_question(message: Message, question_text: str, image_bytes: by
         shown_q = question_text or "(image question, see attached image)"
         if is_group:  # group history is shared, so tag who said what
             shown_q = f"[{speaker or 'user'}]: {shown_q}"
-        api_messages = history + [{"role": "user", "content": shown_q}]
+        # earlier chat = background; the newest message is clearly marked as the one to answer
+        api_messages = history + [{"role": "user", "content":
+                                   f"[CURRENT MESSAGE - reply mainly to this]\n{shown_q}"}]
 
         async def _typing():
             while True:
@@ -113,7 +116,7 @@ async def process_question(message: Message, question_text: str, image_bytes: by
         except AllProvidersFailedError as e:
             log.error(f"[AI] all providers failed for user {user_id}: {e.details}")
             return await message.reply(
-                "😔 Abhi mai busy hu thoda sa wait karo phir dubara yaad dilana . "
+                "😔 Abhi AI service available nahi hai (sab providers fail ho gaye). "
                 "Thodi der me phir try karna."
             )
         except Exception as e:
@@ -140,7 +143,31 @@ async def process_question(message: Message, question_text: str, image_bytes: by
 _Q_WORDS = ("kya", "kaise", "kyu", "kyun", "kaun", "kab", "kitna", "kitne", "kitni", "kahan", "konsa", "kaunsa",
             "what", "how", "why", "when", "which", "who", "solve", "find", "calculate", "explain", "define",
             "prove", "derive", "difference", "meaning", "batao", "bataiye", "samjhao", "nikalo", "hal karo")
+_STUDY_WORDS = {
+    "solve", "explain", "samjhao", "samjha", "formula", "derive", "derivation", "prove", "proof", "theorem",
+    "equation", "define", "definition", "numerical", "mcq", "chapter", "notes", "quiz", "homework", "assignment",
+    "exam", "syllabus", "physics", "chemistry", "maths", "math", "mathematics", "biology", "science", "history",
+    "geography", "economics", "accountancy", "grammar", "essay", "algebra", "geometry", "trigonometry",
+    "calculus", "integration", "derivative", "matrix", "vector", "force", "velocity", "acceleration", "energy",
+    "atom", "molecule", "reaction", "dna", "photosynthesis", "newton", "ohm", "voltage", "current",
+    "probability", "statistics", "python", "java", "coding", "algorithm", "padhai", "padhna",
+    "padhna", "study", "revise", "revision", "question", "sawal", "jawab", 
+}
 _MATH_RE = re.compile(r"\d\s*[-+*/^=x×÷]\s*\d|\b(sin|cos|tan|log|sqrt)\b|[∫√∑π]")
+
+
+def intent_hint(text: str, explicit: bool, has_image: bool) -> str:
+    """Tells the AI whether THIS message looks like a study request or just chat, so it
+    doesn't drag study talk into normal conversation."""
+    t = (text or "").lower()
+    words = set(re.findall(r"[a-z\u0900-\u097f]+", t))
+    if explicit or has_image or _MATH_RE.search(t) or (words & _STUDY_WORDS):
+        return ("\n\nTHIS MESSAGE LOOKS LIKE A STUDY REQUEST: answer it properly and accurately. "
+                "(If on reading it you see it is actually just casual talk, reply casually instead.)")
+    return ("\n\nTHIS MESSAGE IS CASUAL CHAT, NOT A STUDY QUESTION. Reply ONLY to what this message says, in the "
+            "same style and mood (joke -> joke, greeting -> greeting, feelings -> support, flirt-banter -> stay "
+            "in character). Do NOT mention studies, exams, quizzes, notes or offer study help. Ignore any "
+            "study topic from earlier messages unless this message clearly refers to it.")
 
 
 def _looks_like_question(text: str) -> bool:
@@ -202,13 +229,13 @@ async def _run_command(message: Message, arg: str):
         if data is None:
             return await message.reply("❌ Image bahut badi hai. Chhoti/compressed photo bhejo.")
         q = arg or replied_text or "Is image me jo question hai usko solve karo."
-        return await process_question(message, q, image_bytes=data, image_mime="image/jpeg")
+        return await process_question(message, q, image_bytes=data, image_mime="image/jpeg", explicit=True)
     if not arg and replied_text:
         arg = replied_text
     if not arg:
         return await message.reply("Command ke baad apna question likho, ya kisi question/photo ko reply karke "
                                     "/solve likho. Jaise:\n`/ask 2+2 kitna hota hai?`", parse_mode="Markdown")
-    await process_question(message, arg)
+    await process_question(message, arg, explicit=True)
 
 
 @router.message(Command("ask", "solve", "explain"))
