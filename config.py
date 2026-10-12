@@ -72,6 +72,11 @@ FREE_IMAGE_DAILY_LIMIT = _get_int("FREE_IMAGE_DAILY_LIMIT", 10)
 FREE_GROUP_MEMBER_LIMIT = _get_int("FREE_GROUP_MEMBER_LIMIT", 20)
 # Which AI to try first. For faster text replies set on Render:  AI_PROVIDER_ORDER=groq,gemini,openrouter
 AI_PROVIDER_ORDER = [x.strip() for x in _get("AI_PROVIDER_ORDER", "gemini,groq,openrouter").split(",") if x.strip()]
+# Scheduled jobs (hour in local time, TZ_OFFSET_MINUTES; default India +5:30)
+TZ_OFFSET_MINUTES = _get_int("TZ_OFFSET_MINUTES", 330)
+GM_HOUR = _get_int("GM_HOUR", 8)      # good-morning message to the owner
+GN_HOUR = _get_int("GN_HOUR", 23)     # good-night message to the owner
+DQ_HOUR = _get_int("DQ_HOUR", 9)      # daily quiz in groups that enabled it
 LIMIT_WINDOW_HOURS = _get_int("LIMIT_WINDOW_HOURS", 18)
 LIMIT_WINDOW_SECONDS = LIMIT_WINDOW_HOURS * 3600
 
