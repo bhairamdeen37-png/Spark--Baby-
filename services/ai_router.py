@@ -46,16 +46,19 @@ async def _try_provider(name: str, call_coro_factory):
 
 
 async def generate_answer(messages: list, system_prompt: str, image_bytes: bytes = None,
-                           image_mime: str = "image/jpeg", max_tokens: int = None) -> str:
+                           image_mime: str = "image/jpeg", max_tokens: int = None,
+                           provider_order: list = None) -> str:
     """
     Returns the answer text from the first provider that succeeds.
     Raises AllProvidersFailedError if every eligible provider fails.
+    `provider_order` (optional) overrides AI_PROVIDER_ORDER for this call only — the quiz answer
+    checker uses it to ask a DIFFERENT model than the one that wrote the questions.
     """
     errors = {}
 
     from config import AI_PROVIDER_ORDER
     available = {"gemini": gemini_provider, "groq": groq_provider, "openrouter": openrouter_provider}
-    order = [n for n in AI_PROVIDER_ORDER if n in available]
+    order = [n for n in (provider_order or AI_PROVIDER_ORDER) if n in available]
     order += [n for n in ("gemini", "groq", "openrouter") if n not in order]
     providers = [(n, available[n]) for n in order]
 
