@@ -9,6 +9,7 @@ import json
 import re
 
 from services import ai_router
+from services.math_format import plain_math
 from storage import repositories as repo
 
 QUIZ_SYSTEM_PROMPT = (
@@ -18,7 +19,10 @@ QUIZ_SYSTEM_PROMPT = (
     '"question" (string), "options" (list of exactly 4 strings), '
     '"correct_index" (integer 0-3), "explanation" (short string). '
     "Do not invent fake facts — keep questions factually sound for the given "
-    "topic and difficulty."
+    "topic and difficulty. Write ALL maths in plain Unicode text, NEVER LaTeX "
+    "(use x², √2, 1/2, 45°, θ, π, log₁₀ x, sin 30° — not \\frac, \\sqrt, $...$). "
+    "Solve each question yourself first and make sure correct_index points to the truly correct "
+    "option; the 3 wrong options must be clearly wrong; all 4 options must be different."
 )
 
 
@@ -80,7 +84,11 @@ async def generate_quiz(topic: str, difficulty: str, num_questions: int = 5) -> 
         exp = item.get("explanation", "")
         if (isinstance(q, str) and isinstance(opts, list) and len(opts) == 4
                 and isinstance(ci, int) and 0 <= ci <= 3):
-            questions.append({"question": q, "options": opts, "correct_index": ci, "explanation": exp})
+            opts = [plain_math(str(o)) for o in opts]
+            if len(set(o.strip().lower() for o in opts)) < 4:
+                continue  # duplicate options -> unusable question
+            questions.append({"question": plain_math(q), "options": opts, "correct_index": ci,
+                              "explanation": plain_math(exp) if isinstance(exp, str) else ""})
     if not questions:
         raise ValueError(f"quiz_generation_produced_no_valid_questions; raw_start={raw[:200]!r}")
     return questions
