@@ -16,6 +16,7 @@ from config import MAX_ANSWER_CHARS, MAX_IMAGE_BYTES, BOT_OWNER_IDS
 from storage import repositories as repo
 from services import access_service, memory_service, bot_state
 from services.ai_router import generate_answer, AllProvidersFailedError
+from services.math_format import plain_math
 
 log = logging.getLogger("spark_baby.messages")
 router = Router(name="messages")
@@ -112,7 +113,7 @@ async def process_question(message: Message, question_text: str, image_bytes: by
         except AllProvidersFailedError as e:
             log.error(f"[AI] all providers failed for user {user_id}: {e.details}")
             return await message.reply(
-                "😔 Abhi AI service available nahi hai (sab providers fail ho gaye). "
+                "😔 Abhi mai busy hu thoda sa wait karo phir dubara yaad dilana . "
                 "Thodi der me phir try karna."
             )
         except Exception as e:
@@ -120,6 +121,8 @@ async def process_question(message: Message, question_text: str, image_bytes: by
             return await message.reply("😔 Kuch gadbad ho gayi, thodi der me phir try karna.")
         finally:
             typing_task.cancel()
+
+        answer = plain_math(answer)  # Telegram can't render LaTeX -> readable Unicode maths
 
         if auto and SKIP_TAG in answer:
             return  # not a study question -> stay silent (nothing saved to memory)
