@@ -10,7 +10,8 @@ import config
 from storage.database import init_db, close_db
 from services import bot_state
 
-from handlers import start, help, settings, study, messages, quiz, notes, payment, admin, menu
+from handlers import start, help, settings, study, messages, quiz, notes, payment, admin, menu, liya
+from services import scheduler
 
 logging.basicConfig(
     level=getattr(logging, config.LOG_LEVEL, logging.INFO),
@@ -52,6 +53,7 @@ async def main():
     dp.include_router(notes.router)
     dp.include_router(payment.router)
     dp.include_router(admin.router)
+    dp.include_router(liya.router)
     dp.include_router(messages.router)  # generic text/photo handler LAST — it's the catch-all
 
     me = await bot.get_me()
@@ -61,10 +63,12 @@ async def main():
     log.info(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
     await _start_health_server()
+    sched_task = asyncio.create_task(scheduler.run(bot))  # good-morning/night + daily quiz
 
     try:
         await dp.start_polling(bot)
     finally:
+        sched_task.cancel()
         await close_db()
         await bot.session.close()
 
