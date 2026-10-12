@@ -1,0 +1,17 @@
+{
+  "_note": "SAMPLE questions only (6). Add your own checked NEET questions here or in your online QBANK_BASE_URL/neet.json. Format: data/qbank/README.md",
+  "questions": [
+    {"subject": "biology", "level": "medium", "question": "In eukaryotic cells, the Krebs cycle takes place in the:",
+     "options": ["Cytoplasm", "Mitochondrial matrix", "Thylakoid lumen", "Ribosome"], "answer": "B", "explanation": "Krebs (TCA) cycle enzymes are in the mitochondrial matrix."},
+    {"subject": "biology", "level": "easy", "question": "The number of chromosomes in a normal human somatic cell is:",
+     "options": ["23", "44", "48", "46"], "answer": "D", "explanation": "Humans are diploid: 2n = 46."},
+    {"subject": "chemistry", "level": "easy", "question": "Which of the following elements has the highest electronegativity?",
+     "options": ["Fluorine", "Oxygen", "Nitrogen", "Chlorine"], "answer": "A", "explanation": "Fluorine is the most electronegative element (Pauling 3.98)."},
+    {"subject": "physics", "level": "easy", "question": "The SI unit of magnetic flux is:",
+     "options": ["Tesla", "Henry", "Weber", "Gauss"], "answer": "C", "explanation": "Magnetic flux = B × A; unit is weber (Wb)."},
+    {"subject": "physics", "level": "medium", "question": "A convex lens has power +2 D. Its focal length is:",
+     "options": ["25 cm", "50 cm", "2 m", "200 cm"], "answer": "B", "explanation": "f = 1/P = 1/2 m = 50 cm."},
+    {"subject": "biology", "level": "easy", "question": "In the ABO blood group system, the universal donor (for red cells) is:",
+     "options": ["A", "B", "AB", "O"], "answer": "D", "explanation": "Group O red cells have neither A nor B antigens."}
+  ]
+}
